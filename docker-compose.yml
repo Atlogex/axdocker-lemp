@@ -1,0 +1,40 @@
+version: "3.1"
+services:
+
+    mysql:
+      image: mysql:8.0
+      container_name: atlogex-mysql-8
+      working_dir: /application/
+      volumes:
+        - ./db_data/:/application/
+      environment:
+        - MYSQL_ROOT_PASSWORD=112233
+        - MYSQL_DATABASE=db
+        - MYSQL_USER=user
+        - MYSQL_PASSWORD=123456
+      ports:
+        - "3306:3306"
+
+
+    webserver:
+      image: nginx:alpine
+      container_name: atlogex-webserver-1
+      working_dir: /var/apl
+      volumes:
+          - ./public_html/:/var/apl
+          - ./docker/nginx/nginx.conf:/etc/nginx/conf.d/nginx.conf/
+      ports:
+        - "80:80"
+      depends_on:
+        - mysql
+        - php-fpm
+
+    php-fpm:
+      build: docker/php-fpm
+      container_name: atlogex-php-fpm-1
+      working_dir: /apl
+      volumes:
+        - ./public_html/:/var/apl
+        - ./docker/php-fpm/php-ini-overrides.ini:/etc/php/7.1/fpm/conf.d/99-overrides.ini
+      depends_on:
+        - mysql
